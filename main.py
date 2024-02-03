@@ -109,7 +109,7 @@ def analyze(file): # Pass in df
             c[word] += 1
 
     for k,v in c.most_common(30):
-        print(f'{k},{v}')
+        print(f'{k.split('/')[0]},{v}')
 
     # print(c.most_common(30))
 
