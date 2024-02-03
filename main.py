@@ -27,7 +27,7 @@ def clean(arr):
         texts_ko.append(new)
     return texts_ko
 
-def train(data=None,init=False): # Input true if this is the inital run
+def train(data=None,init=True): # Always true if you want ephemeral modeling
     dfs = []
     if data is None:
         dir_path = './training_data'
