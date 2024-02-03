@@ -77,17 +77,17 @@ def train(data=None,init=False): # Input true if this is the inital run
         lda_ko.save('ko_lda.lda')
 
     # get_info(lda_ko)
-    print("LDA has been updated")
+    print("Finished building the model")
 
 def get_info(lda=None):
     if lda is None:
         lda = models.LdaModel.load('ko_lda.lda')
-    print("Topics in the model:")
+    print("Topics modeled:")
     for topic in lda.print_topics(num_topics=ntopics, num_words=nwords):
         print(topic)
 
 def analyze(file): # Pass in df
-    print("Training model with new data....")
+    print("Generating topic models....")
     train(data=file)
     lda_ko = models.ldamodel.LdaModel.load('ko_lda.lda')
     pos = lambda d: ['/'.join(p) for p in t.pos(d, stem=True, norm=True)]
@@ -107,9 +107,9 @@ def analyze(file): # Pass in df
     for words in texts_ko:
         for word in words:
             c[word] += 1
-
+    print("Generating data....")
     for k,v in c.most_common(30):
-        print(f'{k.split('/')[0]},{v}')
+        print(f'{k.split("/")[0]},{v}')
 
     # print(c.most_common(30))
 
@@ -164,14 +164,15 @@ if __name__ == "__main__":
     update_frequency = parameters.get("lda", {}).get("update_frequency")
     training_directory = parameters.get("main", {}).get("training_directory")
     parser = argparse.ArgumentParser(description="Parse arguments for LDA functions.")
-    parser.add_argument("sub", choices=['analyze', 'train', 'info'])
+    # parser.add_argument("sub", choices=['analyze', 'train', 'info'])
+    parser.add_argument("sub", choices=['analyze', 'info'])
     parser.add_argument("--file", default=None)
     args = parser.parse_args()
     if args.sub == 'analyze' and args.file is not None:
         df = pd.read_excel(args.file)
         analyze(df)
-    if args.sub == 'train':
-        train()
+    # if args.sub == 'train':
+    #     train()
         # train(init=True)
     if args.sub == 'info':
         get_info()
