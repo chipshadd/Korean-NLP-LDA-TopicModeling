@@ -143,6 +143,8 @@ def analyze(file): # Pass in df
     plt.imshow(wordcloud, interpolation='bilinear')
     plt.axis('off')
     plt.show()
+    print(args.file)
+    wordcloud.to_file(f'{args.file}.png')
 
 
     # for article in texts_ko:
