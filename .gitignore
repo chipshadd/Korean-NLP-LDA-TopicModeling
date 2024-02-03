@@ -1,0 +1,6 @@
+*.npy
+*.id2word
+*.state
+*.dict
+*.mm
+*.mm.index

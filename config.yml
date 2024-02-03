@@ -1,0 +1,15 @@
+main:
+  training_directory: './training_data'
+  stop_words: 
+    - '매일경제'
+    - '서울'
+    - '기자'
+    - '상'
+
+# Only update these if you know what you are doing
+lda:
+  number_of_topics: 5
+  number_of_training_passes: 10
+  number_of_words_per_topic: 5
+  chunk_size: 100
+  update_frequency: 1

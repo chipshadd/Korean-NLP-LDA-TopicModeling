@@ -1,0 +1,8 @@
+konlpy
+pandas
+nltk
+gensim
+numpy
+openpyxl
+pyarrow
+pyaml
