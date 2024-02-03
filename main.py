@@ -22,8 +22,9 @@ def clean(arr):
         for word in item:
             split = word.split("/")
             if split[1] == 'Noun':
-                if split[0] not in stop_words:
-                    new.append(word)
+                if len(split[0]) > 1:
+                    if split[0] not in stop_words:
+                        new.append(word)
         texts_ko.append(new)
     return texts_ko
 
@@ -104,9 +105,11 @@ def analyze(file): # Pass in df
 
     print()
     c = Counter()
+    flattened_words = []
     for words in texts_ko:
         for word in words:
             c[word] += 1
+            flattened_words.append(word.split("/")[0])
     print("Generating data....")
     for k,v in c.most_common(30):
         print(f'{k.split("/")[0]},{v}')
@@ -130,9 +133,8 @@ def analyze(file): # Pass in df
     # wordcloud
     FONT_PATH = 'C:/Windows/Fonts/malgun.ttf'
     dictionary_ko = corpora.Dictionary.load('ko.dict')
-    # for i in range(len(dictionary_ko)):
-    #     print(dictionary_ko[i])
-    all_words = ' '.join([dictionary_ko[i].split('/')[0] for i in range(len(dictionary_ko))])
+
+    all_words = ' '.join(flattened_words)
     # Generate word cloud
     wordcloud = WordCloud(width=800, height=400, background_color='white', font_path=FONT_PATH).generate(all_words)
 
