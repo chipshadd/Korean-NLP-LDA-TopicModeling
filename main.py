@@ -12,6 +12,7 @@ import os
 import argparse
 import pickle
 import yaml
+from collections import Counter
 
 def clean(arr):
     texts_ko = []
@@ -100,11 +101,30 @@ def analyze(file): # Pass in df
     # print(dict_ko.get(2682))
     # print(dict_ko.doc2bow(texts_ko[213]))
     # print(212, sorted(lda_ko.get_document_topics(dict_ko.doc2bow(texts_ko[213])), key=lambda x: x[1], reverse=True))
+
+    print()
+    c = Counter()
+    for words in texts_ko:
+        for word in words:
+            c[word] += 1
+
+    for k,v in c.most_common(30):
+        print(f'{k},{v}')
+
+    # print(c.most_common(30))
+
+    c_topic = Counter()
     for i in range(len(texts_ko)):
-        # print(lda_ko[dict_ko.doc2bow(texts_ko[i])])
-        print(i, sorted(lda_ko.get_document_topics(dict_ko.doc2bow(texts_ko[i], allow_update=True)), key=lambda x: x[1], reverse=True))
+        found_topic = sorted(lda_ko.get_document_topics(dict_ko.doc2bow(texts_ko[i], allow_update=True)), key=lambda x: x[1], reverse=True)[0][0]
+        c_topic[found_topic] +=1
+        # print(i, sorted(lda_ko.get_document_topics(dict_ko.doc2bow(texts_ko[i], allow_update=True)), key=lambda x: x[1], reverse=True)[0][0])
 
+    print()
+    print(f'{len(texts_ko)} articles found.')
+    for topic,count in c_topic.most_common(ntopics):
+        print(f'{count} were about topic #{topic}')
 
+    print()
     get_info(lda_ko)
 
     # wordcloud
@@ -141,7 +161,6 @@ if __name__ == "__main__":
     npasses = parameters.get("lda", {}).get("number_of_training_passes")
     chunk_size = parameters.get("lda", {}).get("chunk_size")
     stop_words = parameters.get("main", {}).get("stop_words")
-    print(stop_words)
     update_frequency = parameters.get("lda", {}).get("update_frequency")
     training_directory = parameters.get("main", {}).get("training_directory")
     parser = argparse.ArgumentParser(description="Parse arguments for LDA functions.")
@@ -157,4 +176,3 @@ if __name__ == "__main__":
     if args.sub == 'info':
         get_info()
     # parse()
-
