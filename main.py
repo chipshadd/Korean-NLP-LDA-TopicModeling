@@ -180,7 +180,11 @@ if __name__ == "__main__":
     parser.add_argument("--file", default=None)
     args = parser.parse_args()
     if args.sub == 'analyze' and args.file is not None:
-        df = pd.read_excel(args.file)
+        try:
+            df = pd.read_excel(args.file)
+        except PermissionError:
+            print("Cannot open file, is it open in Excel somewhere?")
+            quit()
         analyze(df)
     if args.sub == 'train':
         train(init=True)
