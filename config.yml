@@ -1,4 +1,7 @@
 main:
+  show_n_top_frequent_word: 30
+  ignore_words_in_wordcloud:
+   - 'ignore me'
   training_directory: './training_data'
   stop_words: 
     - '매일경제'

@@ -1,3 +1,6 @@
+# Topic modeling for Korean news articles using LDA 
+
+This is a 
 # Open a command prompt
 - Right click the kr_lda folder
 - Click on 'Open in Terminal'

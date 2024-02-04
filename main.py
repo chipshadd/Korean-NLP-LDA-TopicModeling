@@ -1,5 +1,6 @@
 import pandas as pd
 from konlpy.tag import Okt; t = Okt()
+# from konlpy.tag import Komoran; t = Komoran()
 # from konlpy.tag import Okt
 import nltk
 from konlpy.corpus import kobill
@@ -29,7 +30,12 @@ def clean(arr):
     return texts_ko
 
 def train(data=None,init=False):
+    if init:
+        print("Bulding topic model....")
+    else:
+        print("Updating topic model...")
     dfs = []
+    print("Reading in and cleaning data....")
     if data is None:
         dir_path = './training_data'
         files = os.listdir(dir_path)
@@ -45,19 +51,20 @@ def train(data=None,init=False):
     for df in dfs:
         for x in df[column_name]:
             docs_ko.append(parsing.strip_punctuation(x))
+    # pos = lambda d: ['/'.join(p) for p in t.pos(d)]
     pos = lambda d: ['/'.join(p) for p in t.pos(d, stem=True, norm=True)]
     tmp = [pos(doc) for doc in docs_ko]
     texts_ko = clean(tmp)
 
     # Tokenize words to IDs and merge with existing dictionary
     if init:
-        print("Bulding topic model....")
         dict_ko = corpora.Dictionary(texts_ko)
     else:
         dict_ko = corpora.Dictionary.load('ko.dict')
         # dict_ko = corpora.Dictionary.load('ko_lda.id2word')
 
     # Get new text frequency (TFIDF)
+    print("Training model....")
     tf_ko = [dict_ko.doc2bow(text, allow_update=True) for text in texts_ko]
     tfidf_model_ko = models.TfidfModel(tf_ko)
     tfidf_ko = tfidf_model_ko[tf_ko]
@@ -78,7 +85,7 @@ def train(data=None,init=False):
         lda_ko.update(tfidf_ko, passes=npasses, chunksize=chunk_size, update_every=update_frequency)
         lda_ko.save('ko_lda.lda')
 
-    print("Finished building the model")
+    print("Done")
 
 def get_info(lda=None):
     if lda is None:
@@ -88,8 +95,8 @@ def get_info(lda=None):
         print(topic)
 
 def analyze(file): # Pass in df
-    print("Updating model....")
     train(data=file)
+    print("Analyzing new data....")
     lda_ko = models.ldamodel.LdaModel.load('ko_lda.lda')
     pos = lambda d: ['/'.join(p) for p in t.pos(d, stem=True, norm=True)]
     docs_ko = [parsing.strip_punctuation(x) for x in file[column_name]]
@@ -136,14 +143,13 @@ def analyze(file): # Pass in df
 
     all_words = ' '.join(flattened_words)
     # Generate word cloud
-    wordcloud = WordCloud(width=800, height=400, background_color='white', font_path=FONT_PATH).generate(all_words)
+    wordcloud = WordCloud(stopwords=wc_stoplist, width=800, height=400, background_color='white', font_path=FONT_PATH).generate(all_words)
 
     # Plot the WordCloud image                        
     plt.figure(figsize=(10, 5))
     plt.imshow(wordcloud, interpolation='bilinear')
     plt.axis('off')
     plt.show()
-    print(args.file)
     wordcloud.to_file(f'{args.file}.png')
 
 
@@ -166,6 +172,8 @@ if __name__ == "__main__":
     chunk_size = parameters.get("lda", {}).get("chunk_size")
     stop_words = parameters.get("main", {}).get("stop_words")
     update_frequency = parameters.get("lda", {}).get("update_frequency")
+    top_words = parameters.get("main", {}).get("show_top_n_frequent_words")
+    wc_stoplist = parameters.get("main", {}).get("ignore_words_in_wordcloud")
     training_directory = parameters.get("main", {}).get("training_directory")
     parser = argparse.ArgumentParser(description="Parse arguments for LDA functions.")
     parser.add_argument("sub", choices=['analyze', 'train', 'info'])
