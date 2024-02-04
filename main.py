@@ -1,10 +1,7 @@
 import pandas as pd
 from konlpy.tag import Okt; t = Okt()
-# from konlpy.tag import Okt
 import nltk
-from konlpy.corpus import kobill
 from gensim import corpora, models, parsing
-from gensim import models
 import numpy as np; np.random.seed(42)
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
@@ -29,7 +26,6 @@ def clean(arr):
     return texts_ko
 
 def train(data=None,init=False): # 
-    print("Traning LDA model")
     dfs = []
     if data is None:
         dir_path = './training_data'
@@ -52,30 +48,30 @@ def train(data=None,init=False): #
 
     # Tokenize words to IDs and merge with existing dictionary
     if init:
-        dict_ko = corpora.Dictionary(texts_ko)
-    else:
-        dict_ko = corpora.Dictionary.load('ko.dict')
-        # dict_ko = corpora.Dictionary.load('ko_lda.id2word')
+        dict_ko = corpora.HashDictionary(texts_ko)
+        tf_ko = [dict_ko.doc2bow(text) for text in texts_ko]
+        dict_ko.save('ko.dict')
+    # else:
+    #     dict_ko.merge_with(corpora.HashDictionary(texts_ko))
 
     # Get new text frequency (TFIDF)
-    tf_ko = [dict_ko.doc2bow(text, allow_update=True) for text in texts_ko]
-    tfidf_model_ko = models.TfidfModel(tf_ko)
-    tfidf_ko = tfidf_model_ko[tf_ko]
+    # tfidf_model_ko = models.TfidfModel(tf_ko)
+    # tfidf_ko = tfidf_model_ko[tf_ko]
     # Load and merge Store in Matrix Market format
-    corpora.MmCorpus.serialize('ko.mm', tfidf_ko) 
-    dict_ko.save('ko.dict')
+    # corpora.MmCorpus.serialize('ko.mm', tfidf_ko)
     if init:
+        print("Traning LDA model")
         # lda_ko = models.ldamodel.LdaModel(tfidf_ko, num_topics=ntopics, passes=npasses, chunksize=chunk_size, update_every=update_frequency)
-        lda_ko = models.ldamodel.LdaModel(tfidf_ko, id2word=dict_ko, num_topics=ntopics, passes=npasses, chunksize=chunk_size, update_every=update_frequency)
+        lda_ko = models.ldamodel.LdaModel(tf_ko, id2word=dict_ko, num_topics=ntopics, passes=npasses, chunksize=chunk_size, update_every=update_frequency)
+        # lda_ko = models.ldamodel.LdaModel(tfidf_ko, id2word=dict_ko, num_topics=ntopics, passes=npasses, chunksize=chunk_size, update_every=update_frequency)
         lda_ko.save('ko_lda.lda')
     else:
-        lda_ko = models.ldamodel.LdaModel(id2word=dict_ko, num_topics=ntopics)
-        lda_ko.load('ko_lda.lda')
-        # lda = models.LdaModel.load('ko_lda')
+        # lda_ko = models.ldamodel.LdaModel(id2word=dict_ko, num_topics=ntopics)
+        # lda_ko.load('ko_lda.lda')
+        lda_ko = models.LdaModel.load('ko_lda.lda')
         # lda.id2word = dict_ko
-        lda_ko.sync_state()
-        lda_ko.update(tfidf_ko, passes=npasses, chunksize=chunk_size, update_every=update_frequency)
-        lda_ko.save('ko_lda.lda')
+        # lda_ko.update(tfidf_ko, passes=npasses, chunksize=chunk_size, update_every=update_frequency)
+        # lda_ko.save('ko_lda.lda')
 
     get_info(lda_ko)
     print("Finished building the model")
@@ -89,15 +85,15 @@ def get_info(lda=None):
 
 def analyze(file): # Pass in df
     # print("Generating topic models....")
-    # train(data=file)
+    train(data=file)
     lda_ko = models.ldamodel.LdaModel.load('ko_lda.lda')
     pos = lambda d: ['/'.join(p) for p in t.pos(d, stem=True, norm=True)]
     docs_ko = [parsing.strip_punctuation(x) for x in file[column_name]]
     tmp = [pos(doc) for doc in docs_ko]
     texts_ko = clean(tmp)
-    dict_ko = corpora.Dictionary.load('ko.dict')
-    # dict_ko = corpora.Dictionary.load('ko_lda.id2word')
-    # dict_ko.merge_with(corpora.Dictionary(texts_ko))
+    dict_ko = corpora.HashDictionary()
+    # dict_ko = corpora.HashDictionary.load('ko_lda.id2word')
+    # dict_ko.merge_with(corpora.HashDictionary(texts_ko))
 
     # print(dict_ko.get(2682))
     # print(dict_ko.doc2bow(texts_ko[213]))
@@ -118,7 +114,7 @@ def analyze(file): # Pass in df
 
     c_topic = Counter()
     for i in range(len(texts_ko)):
-        found_topic = sorted(lda_ko.get_document_topics(dict_ko.doc2bow(texts_ko[i], allow_update=True)), key=lambda x: x[1], reverse=True)[0][0]
+        found_topic = sorted(lda_ko.get_document_topics(dict_ko.doc2bow(texts_ko[i])), key=lambda x: x[1], reverse=True)[0][0]
         c_topic[found_topic] +=1
         # print(i, sorted(lda_ko.get_document_topics(dict_ko.doc2bow(texts_ko[i], allow_update=True)), key=lambda x: x[1], reverse=True)[0][0])
 
@@ -132,7 +128,7 @@ def analyze(file): # Pass in df
 
     # wordcloud
     FONT_PATH = 'C:/Windows/Fonts/malgun.ttf'
-    dictionary_ko = corpora.Dictionary.load('ko.dict')
+    dictionary_ko = corpora.HashDictionary.load('ko.dict')
 
     all_words = ' '.join(flattened_words)
     # Generate word cloud
