@@ -28,7 +28,8 @@ def clean(arr):
         texts_ko.append(new)
     return texts_ko
 
-def train(data=None,init=True): # Always true if you want ephemeral modeling
+def train(data=None,init=False): # 
+    print("Traning LDA model")
     dfs = []
     if data is None:
         dir_path = './training_data'
@@ -45,7 +46,6 @@ def train(data=None,init=True): # Always true if you want ephemeral modeling
     for df in dfs:
         for x in df[column_name]:
             docs_ko.append(parsing.strip_punctuation(x))
-        # docs_ko.append([x.replace('.', '').replace(',','').replace("'","").replace('·', ' ').replace('=','').replace('\n','') for x in df[column_name]])
     pos = lambda d: ['/'.join(p) for p in t.pos(d, stem=True, norm=True)]
     tmp = [pos(doc) for doc in docs_ko]
     texts_ko = clean(tmp)
@@ -83,13 +83,13 @@ def train(data=None,init=True): # Always true if you want ephemeral modeling
 def get_info(lda=None):
     if lda is None:
         lda = models.LdaModel.load('ko_lda.lda')
-    print("Topics modeled:")
+    print("Topics in the model:")
     for topic in lda.print_topics(num_topics=ntopics, num_words=nwords):
         print(topic)
 
 def analyze(file): # Pass in df
-    print("Generating topic models....")
-    train(data=file)
+    # print("Generating topic models....")
+    # train(data=file)
     lda_ko = models.ldamodel.LdaModel.load('ko_lda.lda')
     pos = lambda d: ['/'.join(p) for p in t.pos(d, stem=True, norm=True)]
     docs_ko = [parsing.strip_punctuation(x) for x in file[column_name]]
@@ -168,8 +168,7 @@ if __name__ == "__main__":
     update_frequency = parameters.get("lda", {}).get("update_frequency")
     training_directory = parameters.get("main", {}).get("training_directory")
     parser = argparse.ArgumentParser(description="Parse arguments for LDA functions.")
-    # parser.add_argument("sub", choices=['analyze', 'train', 'info'])
-    parser.add_argument("sub", choices=['analyze', 'info'])
+    parser.add_argument("sub", choices=['analyze', 'train', 'info'])
     parser.add_argument("--file", default=None)
     args = parser.parse_args()
     if args.sub == 'analyze' and args.file is not None:
