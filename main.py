@@ -77,7 +77,7 @@ def train(data=None,init=False): #
         lda_ko.update(tfidf_ko, passes=npasses, chunksize=chunk_size, update_every=update_frequency)
         lda_ko.save('ko_lda.lda')
 
-    # get_info(lda_ko)
+    get_info(lda_ko)
     print("Finished building the model")
 
 def get_info(lda=None):
@@ -174,9 +174,8 @@ if __name__ == "__main__":
     if args.sub == 'analyze' and args.file is not None:
         df = pd.read_excel(args.file)
         analyze(df)
-    # if args.sub == 'train':
-    #     train()
-        # train(init=True)
+    if args.sub == 'train':
+        train(init=True)
     if args.sub == 'info':
         get_info()
     # parse()
